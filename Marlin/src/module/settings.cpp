@@ -587,6 +587,13 @@ typedef struct SettingsDataStruct {
   #endif
 
   //
+  // BTT B1 BABY STEP
+  //
+  #if ENABLED(BABYSTEP_DISPLAY_TOTAL)
+    int16_t babystep_z_steps;
+  #endif
+
+  //
   // CONFIGURABLE_MACHINE_NAME
   //
   #if ENABLED(CONFIGURABLE_MACHINE_NAME)
@@ -1688,6 +1695,10 @@ void MarlinSettings::postprocess() {
     //
     #if CASELIGHT_USES_BRIGHTNESS
       EEPROM_WRITE(caselight.brightness);
+    #endif
+
+    #if ENABLED(BABYSTEP_DISPLAY_TOTAL)
+      EEPROM_WRITE(babystep.axis_total[BS_AXIS_IND(Z_AXIS)]);
     #endif
 
     //
@@ -2808,6 +2819,10 @@ void MarlinSettings::postprocess() {
         _FIELD_TEST(caselight_brightness);
         EEPROM_READ(caselight.brightness);
       #endif
+      
+      #if ENABLED(BABYSTEP_DISPLAY_TOTAL)
+        EEPROM_READ(babystep.axis_total[BS_AXIS_IND(Z_AXIS)]);
+      #endif
 
       //
       // CONFIGURABLE_MACHINE_NAME
@@ -3366,6 +3381,10 @@ void MarlinSettings::reset() {
     runout.reset();
     TERN_(HAS_FILAMENT_RUNOUT_DISTANCE, runout.set_runout_distance(FILAMENT_RUNOUT_DISTANCE_MM));
     TERN_(FILAMENT_SWITCH_AND_MOTION,   runout.set_motion_distance(FILAMENT_MOTION_DISTANCE_MM));
+  #endif
+  
+  #if ENABLED(BABYSTEP_DISPLAY_TOTAL)
+    babystep.axis_total[BS_AXIS_IND(Z_AXIS)] = 0;
   #endif
 
   //
@@ -4142,6 +4161,14 @@ void MarlinSettings::reset() {
     // MMU3
     //
     TERN_(HAS_PRUSA_MMU3, gcode.MMU3_report(forReplay));
+
+    #if ENABLED(BABYSTEP_DISPLAY_TOTAL)
+      CONFIG_ECHO_HEADING("Babystep total:");
+      // CONFIG_ECHO_START();
+      CONFIG_ECHO_MSG(
+        "  M290 Z", int(babystep.axis_total[BS_AXIS_IND(Z_AXIS)])
+      );
+    #endif
   }
 
 #endif // !DISABLE_M503

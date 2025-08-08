@@ -349,6 +349,8 @@ public:
     static void set_probing_paused(const bool p);
   #endif
 
+  static bool is_exist();
+
   #if ENABLED(PROBE_TARE)
     static void tare_init();
     static bool tare();

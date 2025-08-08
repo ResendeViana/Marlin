@@ -63,6 +63,10 @@
   #include "../../../module/ft_motion.h"
 #endif
 
+#if ENABLED (BABYSTEP_DISPLAY_TOTAL)
+  #include "../../../feature/babystep.h"
+#endif
+
 #if ABL_USES_GRID
   #if ENABLED(PROBE_Y_FIRST)
     #define PR_OUTER_VAR  abl.meshCount.x
@@ -789,7 +793,11 @@ G29_TYPE GcodeSuite::G29() {
 
           #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-            const float z = abl.measured_z + abl.Z_offset;
+            const float z = abl.measured_z + abl.Z_offset
+              #if ENABLED (BABYSTEP_DISPLAY_TOTAL)
+                + planner.mm_per_step[Z_AXIS] * babystep.axis_total[BS_TOTAL_IND(Z_AXIS)]
+              #endif
+              ;
             abl.z_values[abl.meshCount.x][abl.meshCount.y] = z;
             TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(abl.meshCount, z));
 
@@ -1021,6 +1029,14 @@ G29_TYPE GcodeSuite::G29() {
   probe.use_probing_tool(false);
 
   report_current_position();
+
+  if (isnan(abl.measured_z)) {
+    reset_bed_level();
+  } else {
+    #if ENABLED (BABYSTEP_DISPLAY_TOTAL)
+      babystep.reset_total(Z_AXIS);
+    #endif
+  }
 
   G29_RETURN(isnan(abl.measured_z), true);
 }
